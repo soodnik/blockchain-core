@@ -18,6 +18,7 @@
          count/2,
          randname/1,
          get_config/2,
+         shuffle/1,
          random_n/2,
          init_per_testcase/2,
          init_per_suite/1,
@@ -169,8 +170,8 @@ get_config(Arg, Default) ->
 random_n(N, List) ->
     lists:sublist(shuffle(List), N).
 
-shuffle(List) ->
-    [x || {_,x} <- lists:sort([{rand:uniform(), N} || N <- List])].
+shuffle(Xs) ->
+    [X || {_, X} <- lists:sort([{rand:uniform(), X} || X <- Xs])].
 
 init_per_suite(Config) ->
     application:ensure_all_started(ranch),
