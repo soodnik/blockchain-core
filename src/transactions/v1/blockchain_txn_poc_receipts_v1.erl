@@ -175,6 +175,7 @@ is_valid(Txn, Chain) ->
         true ->
             case blockchain_gateway_cache:get(Challenger, Ledger) of
                 {error, _Reason}=Error ->
+                    lager:info("poc_receipts: gateway not found",[]),
                     Error;
                 {ok, ChallengerGWInfo} ->
                     %% check the challenger is allowed to issue POCs
@@ -282,7 +283,7 @@ check_is_valid_poc(Txn, Chain) ->
                                                            %% Targeting phase
                                                            StartFT = erlang:monotonic_time(millisecond),
                                                            %% Find the original target
-                                                           PrePoCBlockHash = blockchain_ledger_poc_v2:block_hash(PoC),
+                                                           PrePoCBlockHash = blockchain_ledger_poc_v3:block_hash(PoC),
 %%                                                           Entropy = <<POCOnionKeyHash/binary, PrePoCBlockHash/binary>>,
                                                            Entropy = <<POCOnionKeyHash/binary, PrePoCBlockHash/binary>>,
                                                            #{public := _OnionCompactKey, secret := {ecc_compact, POCPrivKey}} = Keys,

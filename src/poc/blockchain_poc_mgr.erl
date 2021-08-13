@@ -452,7 +452,7 @@ initialize_poc(Challenger, BlockHash, POCStartHeight, Keys, Chain, Ledger, Vars)
             PacketHashes = lists:zip(Path, LayerHashes),
             lager:info("*** PacketHashes: ~p", [PacketHashes]),
             Secret = libp2p_crypto:keys_to_bin(Keys),
-            SecretHash = crypto:hash(sha256, Secret),
+%%            SecretHash = crypto:hash(sha256, Secret),
             lager:info("onion of length ~p created ~p", [byte_size(Onion), Onion]),
             %% save the POC data to our local cache
             POCData = #poc_data{
@@ -460,7 +460,7 @@ initialize_poc(Challenger, BlockHash, POCStartHeight, Keys, Chain, Ledger, Vars)
                 onion_key_hash = OnionKeyHash,
                 target = TargetPubkeybin,
                 onion = Onion,
-                secret = Secret, %% TODO: do we still need this ?
+                secret = Secret,
                 challengees = Challengees,
                 packet_hashes = PacketHashes,
                 keys = Keys,
@@ -470,10 +470,10 @@ initialize_poc(Challenger, BlockHash, POCStartHeight, Keys, Chain, Ledger, Vars)
             ok = ?MODULE:cache_poc(OnionKeyHash, POCData),
             lager:info("starting poc for challengeraddr ~p, onionhash ~p", [Challenger, OnionKeyHash]),
             %% save the public POC details to the ledger, needs to be available to validators
-            Ledger1 = blockchain_ledger_v1:new_context(Ledger),
-            ok = blockchain_ledger_v1:request_poc(OnionKeyHash, SecretHash, Challenger, BlockHash, Ledger1),
-            ok = blockchain_ledger_v1:commit_context(Ledger1)
-
+%%            Ledger1 = blockchain_ledger_v1:new_context(Ledger),
+%%            ok = blockchain_ledger_v1:request_poc(OnionKeyHash, SecretHash, Challenger, BlockHash, Ledger1),
+%%            ok = blockchain_ledger_v1:commit_context(Ledger1)
+            ok
     end.
 
 -spec save_public_poc_data(
@@ -494,14 +494,15 @@ save_public_poc_data(
     BlockHeight = blockchain_block_v1:height(Block),
     [
         begin
-            lager:info("saving poc data for poc key ~p", [OnionKeyHash]),
+            lager:info("saving poc data for poc key ~p and challenger ~p", [OnionKeyHash, ChallengerAddr]),
             %% the published key is a hash of the public key, aka the onion key hash
             Ledger1 = blockchain_ledger_v1:new_context(Ledger),
-            ok = blockchain_ledger_v1:save_public_poc(OnionKeyHash, _ChallengerAddr, BlockHash, BlockHeight, Ledger1),
+            _ = blockchain_ledger_v1:save_public_poc(OnionKeyHash, ChallengerAddr, BlockHash, BlockHeight, Ledger1),
             ok = blockchain_ledger_v1:commit_context(Ledger1)
         end
-        || {_ChallengerAddr, OnionKeyHash} <- BlockPocEphemeralKeys
-    ].
+        || {ChallengerAddr, OnionKeyHash} <- BlockPocEphemeralKeys
+    ],
+    ok.
 
 -spec init_new_pocs(
     Block :: blockchain_block:block(),
