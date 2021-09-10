@@ -174,15 +174,15 @@ is_valid(Txn, Chain) ->
         false ->
             {error, bad_signature};
         true ->
-            case blockchain_gateway_cache:get(Challenger, Ledger) of
+            case blockchain_ledger_v1:get_validator(Challenger, Ledger) of
                 {error, _Reason}=Error ->
-                    lager:info("poc_receipts: gateway not found",[]),
+                    lager:info("poc_receipts: gateway not found for challenger ~p",[Challenger]),
                     Error;
-                {ok, ChallengerGWInfo} ->
+                {ok, _ChallengerGWInfo} ->
                     %% check the challenger is allowed to issue POCs
-                    case blockchain_ledger_gateway_v2:is_valid_capability(ChallengerGWInfo, ?GW_CAPABILITY_POC_CHALLENGER, Ledger) of
-                        false -> {error, {challenger_not_allowed, blockchain_ledger_gateway_v2:mode(ChallengerGWInfo)}};
-                        true ->
+%%                    case blockchain_ledger_gateway_v2:is_valid_capability(ChallengerGWInfo, ?GW_CAPABILITY_POC_CHALLENGER, Ledger) of
+%%                        false -> {error, {challenger_not_allowed, blockchain_ledger_gateway_v2:mode(ChallengerGWInfo)}};
+%%                        true ->
                             case ?MODULE:path(Txn) =:= [] of
                                 true ->
                                     {error, empty_path};
@@ -196,7 +196,7 @@ is_valid(Txn, Chain) ->
                                         Error -> Error
                                     end
                             end
-                    end
+%%                    end
             end
     end.
 
@@ -232,7 +232,7 @@ check_is_valid_poc(Txn, Chain) ->
                                           [PrePoCBlockHash, Reason]),
                             Error;
                         {ok, Block1} ->
-                            PoCKeys = blockchain_block_v1:poc_keys(),
+                            PoCKeys = blockchain_block_v1:poc_keys(Block1),
 %%                            PoCInterval = blockchain_utils:challenge_interval(Ledger),
 %%                            case LastChallenge + PoCInterval >= Height of
 %%                                false ->
