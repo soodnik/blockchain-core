@@ -18,7 +18,6 @@
          count/2,
          randname/1,
          get_config/2,
-         shuffle/1,
          random_n/2,
          init_per_testcase/2,
          init_per_suite/1,
@@ -168,10 +167,7 @@ get_config(Arg, Default) ->
     end.
 
 random_n(N, List) ->
-    lists:sublist(shuffle(List), N).
-
-shuffle(Xs) ->
-    [X || {_, X} <- lists:sort([{rand:uniform(), X} || X <- Xs])].
+    lists:sublist(blockchain_utils:shuffle(List), N).
 
 init_per_suite(Config) ->
     application:ensure_all_started(ranch),

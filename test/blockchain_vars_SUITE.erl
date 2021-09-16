@@ -162,7 +162,7 @@ master_key_test(Cfg) ->
     Proofs7 = [blockchain_txn_vars_v1:create_proof(P, Txn7_0)
                %% shuffle the proofs to make sure we no longer need
                %% them in the correct order
-               || P <- shuffle([Priv2, Priv3, Priv4, Priv5, Priv6])],
+               || P <- blockchain_utils:shuffle([Priv2, Priv3, Priv4, Priv5, Priv6])],
     Txn7_1 = blockchain_txn_vars_v1:multi_key_proofs(Txn7_0, Proofs7),
     Proof7 = blockchain_txn_vars_v1:create_proof(Priv2, Txn7_1),
     Txn7 = blockchain_txn_vars_v1:proof(Txn7_1, Proof7),
@@ -243,7 +243,7 @@ master_key_test(Cfg) ->
     Proofs12 = [blockchain_txn_vars_v1:create_proof(P, Txn12_0)
                 %% shuffle the proofs to make sure we no longer need
                 %% them in the correct order
-                || P <- shuffle([Priv7])],
+                || P <- blockchain_utils:shuffle([Priv7])],
     Txn12_1 = blockchain_txn_vars_v1:multi_key_proofs(Txn12_0, Proofs12),
     Proofs = [blockchain_txn_vars_v1:create_proof(P, Txn12_1)
                || P <- [Priv3, Priv4, Priv5]],
@@ -307,11 +307,5 @@ vars(Map, Nonce, Priv) ->
 
 mvars(Map, Nonce, Privs) ->
     Txn = blockchain_txn_vars_v1:new(Map, Nonce),
-    Proofs = [blockchain_txn_vars_v1:create_proof(P, Txn) || P <- shuffle(Privs)],
+    Proofs = [blockchain_txn_vars_v1:create_proof(P, Txn) || P <- blockchain_utils:shuffle(Privs)],
     blockchain_txn_vars_v1:multi_proofs(Txn, Proofs).
-
-%% TODO Relocate to a better module
-shuffle(Xs) ->
-    N = length(Xs),
-    {_, S} = lists:unzip(lists:sort([{rand:uniform(N), X} || X <- Xs])),
-    S.
