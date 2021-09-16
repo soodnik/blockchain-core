@@ -174,15 +174,12 @@ is_valid(Txn, Chain) ->
         false ->
             {error, bad_signature};
         true ->
+            %% check the challenger is actually a validator and it exists
             case blockchain_ledger_v1:get_validator(Challenger, Ledger) of
                 {error, _Reason}=Error ->
-                    lager:info("poc_receipts: gateway not found for challenger ~p",[Challenger]),
+                    lager:info("poc_receipts: validator not found for challenger ~p",[Challenger]),
                     Error;
-                {ok, _ChallengerGWInfo} ->
-                    %% check the challenger is allowed to issue POCs
-%%                    case blockchain_ledger_gateway_v2:is_valid_capability(ChallengerGWInfo, ?GW_CAPABILITY_POC_CHALLENGER, Ledger) of
-%%                        false -> {error, {challenger_not_allowed, blockchain_ledger_gateway_v2:mode(ChallengerGWInfo)}};
-%%                        true ->
+                {ok, _ChallengerInfo} ->
                             case ?MODULE:path(Txn) =:= [] of
                                 true ->
                                     {error, empty_path};
@@ -196,7 +193,6 @@ is_valid(Txn, Chain) ->
                                         Error -> Error
                                     end
                             end
-%%                    end
             end
     end.
 
@@ -811,8 +807,8 @@ absorb(Txn, Chain) ->
                         lists:foreach(fun({Gateway, Delta}) ->
                                               blockchain_ledger_v1:update_gateway_score(Gateway, Delta, Ledger)
                                       end,
-                                      ?MODULE:deltas(Txn, Chain));
-%%                        blockchain_ledger_v1:delete_poc(LastOnionKeyHash, Challenger, Ledger);
+                                      ?MODULE:deltas(Txn, Chain)),
+                        blockchain_ledger_v1:delete_public_poc(LastOnionKeyHash, Ledger);
                     _ ->
                         %% continue doing the old behavior
                         case blockchain_ledger_v1:delete_poc(LastOnionKeyHash, Challenger, Ledger) of
